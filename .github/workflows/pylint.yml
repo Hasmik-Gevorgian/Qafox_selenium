@@ -1,42 +1,49 @@
-name: Python autotest
+name: Test Automation
 
-on: 
-   workflow_dispatch:
-      inputs:
-         deployment_target:
-            description: choose tests set
-            required: true
-            type: choice
-            default: smoke
-            options:
-               - smoke
-               - regression
-               - all
-   
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_target:
+        description: 'Deployment target (smoke, regression, or all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - smoke
+          - regression
+          - all
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Run autotests
-        uses: actions/checkout@v4
-      - name: Set up Python evironment
+      - uses: actions/checkout@v4
+
+      - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
           python-version: '3.12.3'
+
       - name: Pip Upgrade
-        run:
+        run: |
           python -m pip install --upgrade pip
+
+      - name: List files in the directory (for debugging)
+        run: ls -R
+
       - name: Install dependencies
-        run:  
+        run: |
           pip install -r requirements.txt
-      - name: run all tests
-        if: "github.event.inputs.deployment_target == 'all'"  
+
+      - name: Run all tests
+        if: "github.event.inputs.deployment_target == 'all'"
         run: pytest
-      - name: run smoke tests
-        if: "github.event.inputs.deployment_target == 'smoke'"  
+
+      - name: Run smoke tests
+        if: "github.event.inputs.deployment_target == 'smoke'"
         run: pytest -m smoke
-      - name: run regression tests
-        if: "github.event.inputs.deployment_target == 'regression'"  
+
+      - name: Run regression tests
+        if: "github.event.inputs.deployment_target == 'regression'"
         run: pytest -m regression
-   
